@@ -80,14 +80,16 @@ WSGI_APPLICATION = 'web_project.wsgi.application'
 import dj_database_url
 from decouple import config
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=config('DATABASE_URL')
-    )
-}
 
 
 """ DATABASES = {
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL')
+    )
+} """
+
+
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'projectdb',
@@ -96,7 +98,7 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '',
     }
-} """
+}
 
 
 # Password validation
