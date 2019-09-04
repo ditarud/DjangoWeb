@@ -1,0 +1,48 @@
+{% load static %}
+{% load bootstrap4 %}
+
+<html>
+
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{% static '/home.css' %}">
+
+</head>
+
+     <div class="row">
+      <div class="col-sm-2" >
+          <p class="p-2"> La marca es : {{mobiles.brand}} </p>
+
+      </div>
+
+
+      <div class="col-sm-8">
+
+        {% block search %}
+
+          {% endblock %}
+
+
+
+
+
+      </div>
+
+      <div class="col-sm-2">
+
+                     <p class="p-2" align="right"> El dolar de hoy es: ${{valor_dolar}} </p>
+
+      </div>
+
+     </div>
+
+
+
+
+
+
+
+
+    </body>
+</html>
