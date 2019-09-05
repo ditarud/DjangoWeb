@@ -19,12 +19,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-                  path('home/', include("home.urls")),
+                  path('', include("home.urls")),
                   path('admin/', admin.site.urls),
+                  path('run/', include("home.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 
-""" urlpatterns = [
-    path("", include("home.urls")),
-    path('admin/', admin.site.urls),
-] """
