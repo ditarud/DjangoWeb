@@ -22,6 +22,8 @@ urlpatterns = [
                   path('', include("home.urls")),
                   path('admin/', admin.site.urls),
                   path('run/', include("home.urls")),
+                  path('runEbay/', include("home.urls")),
+                  path('runSm/', include("home.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 
