@@ -13,6 +13,12 @@ def index(request):
     return render( request, 'search.html', context)
 
 
+def getAllExactModelName():
+    # SACAR DE LA BD TODOS LOS MODELOS QUE TENEMOS , PARA EMPEZAR A JUNTAR COSAS Y PODER BUSCAR EN KIMOVIL CON SCRAPING
+    # RETORNAR UNA LISTA CON TODOS LOS MODELOS COMO [MI9,MI8,6T,7PRO,7,REDMI,A1,A2,A3,MATE20,MATE30,ETC]
+    return
+
+
 def DolarApi():
     response = requests.get('https://mindicador.cl/api')
     data = response.json()
@@ -94,8 +100,31 @@ def SmartmobileScraping(request):
 
 
 
+
+
 def KimovilScraping():
-    print ("hola")
+    brands = ['40-oneplus', '69-huawei', '105-xiaomi', '15-samsung']
+
+    for brand in brands:
+        website = "https://www.promovil.cl/brand"
+        url = website.replace("brand", brand)
+        source = requests.get(url)
+        soup = BeautifulSoup(source.content, "lxml")
+
+        summary = soup.find_all('article', {"class": "product-miniature js-product-miniature"})
+        brand = brand.split("-")[1]
+
+        for item in summary:
+            model = (item.find_all("a", {"class": "product_name"})[0].text)
+            price = (item.find_all("span", {"class": "price"})[0].text)
+            link = (item.find_all("a", {"class": "thumbnail product-thumbnail"})[0]['href'])
+            thumbnail = (item.find_all("img")[0]['src'])
+
+            mobile = Mobile.objects.get_or_create(brand=brand, release_date="", price=price, model=model, screen_size=0,
+                                                  resolution="", dimensions="", weight=0, ram="",
+                                                  storage="", rear_camera="", front_camera="", score="",
+                                                  shop="Promovil", link=link, thumbnail=thumbnail)
+    #return render(request, 'scraping.html')
 
 def EbayApi(request):
     brands = ['Xiaomi', 'Huawei', 'OPPO' , 'OnePlus' ]
