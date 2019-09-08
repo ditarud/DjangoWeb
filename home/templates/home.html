@@ -11,24 +11,63 @@
 </head>
 
      <div class="row">
+
       <div class="col-sm-2" >
           <p class="p-2"> La marca es : {{mobiles.brand}} y {{mobiles.price}} </p>
 
       </div>
 
+        <div class="col-sm-8">
 
-      <div class="col-sm-8">
-
+      <div class="row">
         {% block search %}
 
           {% endblock %}
-          <div> hola </div>
 
 
 
+        {% for i in list_mobiles %}
+
+          <div class="mx-auto card-deck" >
+
+              <div class="card" style="max-width: 18rem;" >
+                <img src="https://www.stickpng.com/assets/images/580b57fcd9996e24bc43c531.png" class="card-img-top"  alt="..." style="max-height: 100px; max-width: 100px">
+                <div class="card-body">
+                  <h5 class="card-title"> {{i.model }} </h5>
+                  <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                  <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+                </div>
+              </div>
 
 
+
+        </div>
+
+
+        {% endfor %}
+
+
+        </div>
+
+
+            <div class="pagination"  style="display: flex; justify-content: flex-end" >
+
+              {% if list_mobiles.has_previous %}
+              <a href="?page=1">First </a>
+              <a href="?page={{ list_mobiles.previous_page_number }}"> Previous </a>
+              {% endif %}
+
+              <span>{{ list_mobiles.number }}</span>
+              <span> of</span>
+              <span>{{ list_mobiles.paginator.num_pages }}</span>
+
+              {% if list_mobiles.has_next %}
+              <a href="?page={{ list_mobiles.next_page_number }}">Next </a>
+              <a href="?page={{ list_mobiles.paginator.num_pages }}">Last </a>
+              {% endif %}
+            </div>
       </div>
+
 
       <div class="col-sm-2">
 

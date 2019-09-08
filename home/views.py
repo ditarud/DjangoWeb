@@ -3,28 +3,82 @@ import requests
 from django.shortcuts import render
 from .models import Mobile
 from bs4 import BeautifulSoup
+from django.db.models import Q
+from django.core.paginator import Paginator
 
 
 def index(request):
     mobiles = Mobile.objects.all()[0]
+    list_mobiles  = Mobile.objects.filter(Q(model__contains='one plus') | Q(model__contains='oneplus'))[:20]
+    paginator = Paginator(list_mobiles, 6)
 
-    context = {'valor_dolar':DolarApi(), 'mobiles':mobiles}
+    page = request.GET.get('page')
+
+    list_mobiles = paginator.get_page(page)
+
+    context = {'valor_dolar':DolarApi(), 'mobiles':mobiles, 'list_mobiles': list_mobiles}
+    #getAllExactModelName()
+    #getLinkFromBD()
+    #KimovilScraping()
+    #checkScore()
+
 
     return render( request, 'search.html', context)
 
 
 def getAllExactModelName():
+    mobile_models = Mobile.objects.filter(Q(model__contains='one plus') | Q(model__contains='oneplus'))
+    count_oneplus = Mobile.objects.filter(Q(brand="OnePlus") | Q(brand="oneplus")).count()
+    count = 0
+    all_oneplus_models = []
+    all_xiaomi_models = []
+    all_huawei_models = []
+    all_oppo_models = []
+    all_zte_models = []
+    for i in mobile_models:
+        list_of_words = i.model.split()
+        for k in list_of_words:
+           if k == 'oneplus' and len(list_of_words) > 2:
+               next_word = list_of_words[list_of_words.index('oneplus') + 1] + " " + list_of_words[list_of_words.index('oneplus') + 2]
+               all_oneplus_models.append(next_word)
+           if k == 'one plus' and len(list_of_words) > 2:
+               next_word = list_of_words[list_of_words.index('one plus') + 1] + " " + list_of_words[
+                   list_of_words.index('one plus') + 2]
+               all_oneplus_models.append(next_word)
+           if k == 'One Plus' and len(list_of_words) > 2:
+               next_word = list_of_words[list_of_words.index('One Plus') + 1] + " " + list_of_words[
+                   list_of_words.index('One Plus') + 2]
+               all_oneplus_models.append(next_word)
+           if k == 'ONEPLUS' and len(list_of_words) > 2:
+               next_word = list_of_words[list_of_words.index('ONEPLUS') + 1] + " " + list_of_words[
+                   list_of_words.index('ONEPLUS') + 2]
+               all_oneplus_models.append(next_word)
+
+    count+=1
+    print ((all_oneplus_models))
+    return all_oneplus_models
     # SACAR DE LA BD TODOS LOS MODELOS QUE TENEMOS , PARA EMPEZAR A JUNTAR COSAS Y PODER BUSCAR EN KIMOVIL CON SCRAPING
     # RETORNAR UNA LISTA CON TODOS LOS MODELOS COMO [MI9,MI8,6T,7PRO,7,REDMI,A1,A2,A3,MATE20,MATE30,ETC]
-    return
 
+
+def getLinkFromBD():
+    mobile_link = Mobile.objects.filter(Q(shop='Smartmobile'))
+    link_kimovil_smartmobile  = []
+    for i in mobile_link:
+          link_kimovil_smartmobile.append(i.link.replace("https://smartmobile.cl/producto/" , "").partition("-global")[0])
+    return (link_kimovil_smartmobile)
 
 def DolarApi():
-    response = requests.get('https://mindicador.cl/api')
-    data = response.json()
+    try:
+        response = requests.get('https://mindicador.cl/api')
+        data = response.json()
+        dolar = data['dolar']['valor']
+        return dolar
+    except:
+        return "Murió Api"
 
-    dolar = data['dolar']['valor']
-    return dolar
+
+
 
 def PromovilScraping(request):
     brands = ['40-oneplus', '69-huawei', '105-xiaomi', '15-samsung']
@@ -47,7 +101,7 @@ def PromovilScraping(request):
 
 
 
-           mobile = Mobile.objects.get_or_create(brand=brand, release_date="", price=price, model=model, screen_size=0, resolution="", dimensions="", weight=0, ram="",
+           mobile = Mobile.objects.get_or_create(brand=brand, release_date="", price=price, model=model.lower(), screen_size=0, resolution="", dimensions="", weight=0, ram="",
                                           storage="",rear_camera="",front_camera="",score="",shop="Promovil",link=link , thumbnail = thumbnail)
     return render(request,'scraping.html')
 
@@ -92,39 +146,57 @@ def SmartmobileScraping(request):
                 link_bd =  link[i].find("a")['href']
                 thumbnail_bd = no_duplicates_thmbnail[i]['src']
 
-                mobile = Mobile.objects.get_or_create(brand=brand, release_date="", price=price, model=model, screen_size=0,
+                mobile = Mobile.objects.get_or_create(brand=brand, release_date="", price=price, model=model.lower(), screen_size=0,
                                                     resolution="", dimensions="", weight=0, ram="",
                                                      storage="", rear_camera="", front_camera="", score="",
                                                       shop="Smartmobile", link=link_bd, thumbnail=thumbnail_bd)
     return render(request, 'scraping.html')
 
 
-
+def checkScore():
+    mobile_models = Mobile.objects.filter(Q(model__contains='one plus') | Q(model__contains='oneplus'))
+    dict_scores = KimovilScraping()
+   # for mobile in mobile_models:
+       # print( mobile.model , [value for key, value in dict_scores.items() if mobile.model.find(key.lower()) != -1] )
 
 
 def KimovilScraping():
-    brands = ['40-oneplus', '69-huawei', '105-xiaomi', '15-samsung']
+    brands = ['oneplus']
+    getLinkFromBD()
+    score_dict = {}
 
     for brand in brands:
-        website = "https://www.promovil.cl/brand"
-        url = website.replace("brand", brand)
-        source = requests.get(url)
-        soup = BeautifulSoup(source.content, "lxml")
+        for model in getLinkFromBD():
+            model = model.lower()
+            website = "https://www.kimovil.com/es/donde-comprar-model"
+            url = website.replace("brand", brand)
+            complete_url = url.replace("model",model)
 
-        summary = soup.find_all('article', {"class": "product-miniature js-product-miniature"})
-        brand = brand.split("-")[1]
+            source = requests.get(complete_url)
+            soup = BeautifulSoup(source.content, "lxml")
 
-        for item in summary:
-            model = (item.find_all("a", {"class": "product_name"})[0].text)
-            price = (item.find_all("span", {"class": "price"})[0].text)
-            link = (item.find_all("a", {"class": "thumbnail product-thumbnail"})[0]['href'])
-            thumbnail = (item.find_all("img")[0]['src'])
+            summary = soup.find_all('div', {"class": "k-message opinions-score-message"})
 
-            mobile = Mobile.objects.get_or_create(brand=brand, release_date="", price=price, model=model, screen_size=0,
-                                                  resolution="", dimensions="", weight=0, ram="",
-                                                  storage="", rear_camera="", front_camera="", score="",
-                                                  shop="Promovil", link=link, thumbnail=thumbnail)
-    #return render(request, 'scraping.html')
+
+            for item in summary:
+
+                score = (item.find_all("div", {"class": "score"})[0].text)
+
+               # price = (item.find_all("span", {"class": "price"})[0].text)
+               # link = (item.find_all("a", {"class": "thumbnail product-thumbnail"})[0]['href'])
+               # thumbnail = (item.find_all("img")[0]['src'])
+                model = model.replace("-"," ").replace("/"," ")
+                score = score.replace("\n","")
+                score_dict.update({model: score})
+                #print ({score: model})
+                #if Mobile.objects.get(score="c"):
+    return score_dict
+                #mobile = Mobile.objects.filter(model__icontains=model).update(score=str(score))
+
+
+
+
+
 
 def EbayApi(request):
     brands = ['Xiaomi', 'Huawei', 'OPPO' , 'OnePlus' ]
@@ -144,7 +216,7 @@ def EbayApi(request):
             price_usd =  product_data['findItemsAdvancedResponse'][0]['searchResult'][0]['item'][i]['sellingStatus'][0]['convertedCurrentPrice'][0]['__value__']
             link = product_data['findItemsAdvancedResponse'][0]['searchResult'][0]['item'][i]['viewItemURL'][0]
 
-            mobile = Mobile.objects.get_or_create(brand=brand, release_date="", price=price_usd, model=model, screen_size=0,
+            mobile = Mobile.objects.get_or_create(brand=brand, release_date="", price=price_usd, model=model.lower(), screen_size=0,
                                           resolution="", dimensions="", weight=0, ram="",
                                           storage="", rear_camera="", front_camera="", score="", shop="Ebay",
                                           link=link, thumbnail= "")

@@ -5,6 +5,16 @@
 
 }
 
+img {
+  display: block;
+  margin: 0 auto;
+}
+
+.pagination {
+    text-align: center;
+    margin-top: 1em;
+
+}
 
 /* Clear floats after the columns */
 .row:after {
