@@ -29,13 +29,12 @@ prices_for_model = {}
 
 def index(request):
     dolar = DolarApi()
-    #writeAllExactModels('oneplus')
-    #writeAllExactModels('xiaomi')
-    #writeAllExactModels('huawei')
-    #writeAllExactModels('oppo')
+    writeAllExactModels('oneplus')
+    writeAllExactModels('xiaomi')
+    writeAllExactModels('huawei')
+    writeAllExactModels('oppo')
 
 
-    list_mobiles  = Mobile.objects.filter(Q(model__contains='one plus') | Q(model__contains='oneplus'))[:20]
 
     for brand in ['xiaomi','oneplus', 'huawei', 'oppo']:
 
@@ -46,8 +45,6 @@ def index(request):
         list_mobiles = { k : v for k,v in list_mobiles.items() if v}
 
         list_mobiles = tuple(list_mobiles.items())
-            #list_mobiles = Mobile.objects.filter(Q(model__icontains=query) | Q(brand__icontains=query))
-            #list_mobiles = dict(list_mobiles)
 
 
         paginator = Paginator(list_mobiles, 6)
@@ -58,34 +55,32 @@ def index(request):
 
 
 
-
-
-       # getPriceByModel('Promovil')
-        #getPriceByModel('Ebay')
-        #writeAllExactModels()
-        #getAllExactModelName()
-        #getLinkFromBD()
-        #KimovilScraping()
-        #checkScore()
-
         context = {'valor_dolar': dolar, 'list_mobiles': list_mobiles, 'new_list_mobiles':prices_for_model}
 
 
 
     return render( request, 'search.html', context)
 
+
+def productDetail(request, id):
+    phone =  Mobile.objects.get(id=id)
+
+    score = KimovilScraping(phone.exact_model)
+    context = {'phone':phone, 'score':score}
+    return  render(request, 'product_detail.html',context)
+
 def getPriceByModel(request, brand, dolar):
     result = []
     prices = []
     for model in all_models_sept_2019[brand]:
         prices_for_model.update({model: []})
-        phones = Mobile.objects.filter(Q(exact_model=model)).values('model','shop','price','exact_model','link','thumbnail').annotate(total=Count('shop')).order_by('price')[:7]
+        phones = Mobile.objects.filter(Q(exact_model=model)).values('id','model','shop','price','exact_model','link','thumbnail').annotate(total=Count('shop')).order_by('price')[:7]
         temp_shop = ['Ebay', 'Smartmobile', 'Promovil']
 
         query = request.GET.get('q')
 
         if query:
-            phones = Mobile.objects.filter(Q(exact_model__icontains=query) | Q(brand__icontains=query) | Q(shop__icontains=query)).values('model','shop','price','exact_model','link','thumbnail').annotate(total=Count('shop')).order_by('price')[:7]
+            phones = Mobile.objects.filter(Q(exact_model__icontains=query) | Q(brand__icontains=query) | Q(shop__icontains=query)).values('id','model','shop','price','exact_model','link','thumbnail').annotate(total=Count('shop')).order_by('price')[:7]
 
         for phone in phones:
           #  print (phone['price'] + " " + phone['exact_model'] + " " + phone['shop'] )
@@ -94,7 +89,7 @@ def getPriceByModel(request, brand, dolar):
                 if phone['shop'] == "Ebay":
                     phone['price'] = '{:,.0f}'.format((int(phone['price'].split(".")[0]) * int(dolar))).replace(",",".")
                 if len(prices_for_model[phone['exact_model']]) < 1:
-                    prices_for_model[phone['exact_model']].append([phone['shop'], phone['price'], phone['link'], phone['model'][0:14], phone['thumbnail']])
+                    prices_for_model[phone['exact_model']].append([phone['shop'], phone['price'], phone['link'],phone['id'],phone['model'][0:14], phone['thumbnail']])
 
                 prices_for_model[phone['exact_model']].append([phone['shop'],phone['price'],phone['link']])
                 temp_shop.remove(phone['shop'])
@@ -103,18 +98,7 @@ def getPriceByModel(request, brand, dolar):
     return prices_for_model
 
 
-def search(request):
-    template = 'home.html'
 
-    results = Mobile.objects.filter(Q(model__icontains=query) | Q(brand__icontains=query))
-
-
-
-    pages = pagination(request,results, num=1)
-
-    context = { 'items' : pages[0] , 'page_range':pages[1],}
-
-    return render(request,template,context)
 
 def writeAllExactModels(brand):
     phones = Mobile.objects.filter((Q(shop="Promovil") | Q(shop="Smartmobile") | Q(shop="Ebay")) & (Q(brand=brand) | Q(brand=brand.capitalize()) | Q(brand=brand.upper())))
@@ -290,38 +274,27 @@ def checkScore():
        # print( mobile.model , [value for key, value in dict_scores.items() if mobile.model.find(key.lower()) != -1] )
 
 
-def KimovilScraping():
-    brands = ['oneplus']
+def KimovilScraping(exact_model):
+    brands = ['xiaomi']
     getLinkFromBD()
     score_dict = {}
 
-    for brand in brands:
-        for model in getLinkFromBD():
-            model = model.lower()
-            website = "https://www.kimovil.com/es/donde-comprar-model"
-            url = website.replace("brand", brand)
-            complete_url = url.replace("model",model)
 
-            source = requests.get(complete_url)
-            soup = BeautifulSoup(source.content, "lxml")
+    website = "https://www.kimovil.com/en/compare-smartphones/name.exact_model"
+    url = website.replace("exact_model", exact_model)
 
-            summary = soup.find_all('div', {"class": "k-message opinions-score-message"})
+    source = requests.get(url)
+    soup = BeautifulSoup(source.content, "lxml")
+
+    summary = soup.find_all('div', {"class": "objetive-wrap clear"})[0].text
+    score = soup.find_all('div', {"class": "ki-rating"})[0].text
+    screen_size =  soup.find('div', {"class": "data"})
+
+    return score
 
 
-            for item in summary:
 
-                score = (item.find_all("div", {"class": "score"})[0].text)
 
-               # price = (item.find_all("span", {"class": "price"})[0].text)
-               # link = (item.find_all("a", {"class": "thumbnail product-thumbnail"})[0]['href'])
-               # thumbnail = (item.find_all("img")[0]['src'])
-                model = model.replace("-"," ").replace("/"," ")
-                score = score.replace("\n","")
-                score_dict.update({model: score})
-                #print ({score: model})
-                #if Mobile.objects.get(score="c"):
-    return score_dict
-                #mobile = Mobile.objects.filter(model__icontains=model).update(score=str(score))
 
 
 
@@ -345,8 +318,11 @@ def EbayApi(request):
             model =  product_data['findItemsAdvancedResponse'][0]['searchResult'][0]['item'][i]['title'][0]
             price_usd =  product_data['findItemsAdvancedResponse'][0]['searchResult'][0]['item'][i]['sellingStatus'][0]['convertedCurrentPrice'][0]['__value__']
             link = product_data['findItemsAdvancedResponse'][0]['searchResult'][0]['item'][i]['viewItemURL'][0]
-            thumbnail = product_data['findItemsAdvancedResponse'][0]['searchResult'][0]['item'][i]['galleryURL'][0]
+            if 'galleryURL' in product_data['findItemsAdvancedResponse'][0]['searchResult'][0]['item'][i].keys():
 
+                thumbnail = product_data['findItemsAdvancedResponse'][0]['searchResult'][0]['item'][i]['galleryURL'][0]
+            print(model)
+            print(thumbnail)
             mobile = Mobile.objects.get_or_create(brand=brand, release_date="", price=price_usd, model=model.lower(), screen_size=0,
                                           resolution="", dimensions="", weight=0, ram="",
                                           storage="", rear_camera="", front_camera="", score="", shop="Ebay",
@@ -359,20 +335,3 @@ def EbayApi(request):
 
 
 
-def MercadolibreApi():
-    brands = ['Oneplus' , 'Xiaomi', 'Own', 'ZTE' , 'Huawei']
-    brands = {'Oneplus': 'MLC157416' , 'Xiaomi' : 'MLC157415', 'Own' : 'MLC174007', 'Huawei' : 'MLC157425' , 'ZTE' : 'MLC157421' }
-    categories = requests.get('https://api.mercadolibre.com/categories/MLC1055')
-    categories_data = categories.json()
-
-    product_by_category = requests.get('https://api.mercadolibre.com/sites/MLC/search?category=MLC157416')
-    all_products = product_by_category.json()
-
-    print (all_products['results'][0]['title'])
-
-    response = requests.get('https://api.mercadolibre.com/items/MLC497664741')
-    data = response.json()
-
-    shop = requests.get('https://api.mercadolibre.com/users/166687136')
-    shop_data = shop.json()
-    shop_name = shop_data['nickname']

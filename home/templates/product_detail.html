@@ -1,10 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
+
+{% load static %}
+{% load bootstrap4 %}
+{% load mathfilters %}
+
 <head>
     <meta charset="UTF-8">
+     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{% static '/product_detail.css' %}">
+    <link href="/bootstrap4-glyphicons/css/bootstrap-glyphicons.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <title>Title</title>
 </head>
-<body>
+<nav class="navbar navbar-light" style="background-color: #008080;">
+  <a class="navbar-brand" style="color: FFFFFF" href="http://{{ request.get_host }}">SoloChino</a>
+      <a class="navbar-brand"  style="color: FFFFFF"  align="right"> </a>
 
+</nav>
+<body>
+    <div class="row">
+          <div class="col-sm-4" >
+            <img src={{phone.thumbnail}} class="card-img-top"  alt="No hay imagen disponible" style="height: 400px; width: 400px">
+         </div>
+          <div class="col-sm-6" >
+              <div class="row" style=" white-space:pre-line;">
+                  Descripción: {{phone.model}}
+                  Tiendas: {{phone.shop}}
+                  Precio: ${{phone.price}}
+                  Marca: {{phone.brand}}
+                  Modelo: {{phone.exact_model}}
+              </div>
+            <div class="row" >
+              <a href="{{phone.link}}">Ver en {{phone.shop}} </a>
+             </div>
+
+              <div class="row">
+
+
+              <strong>   <span class="border-10 border-warning" > Calificación:    {{score}}  </span> </strong>
+
+              </div>
+              <div class="row" >
+
+                  <a href="https://www.kimovil.com/en/compare-smartphones/name.{{phone.exact_model}}">  Ver opiniones de usuarios en Kimovil </a>
+
+
+
+
+        </div>
+
+    </div>
 </body>
 </html>

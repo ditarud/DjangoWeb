@@ -24,6 +24,7 @@ urlpatterns = [
                   path('run/', include("home.urls")),
                   path('runEbay/', include("home.urls")),
                   path('runSm/', include("home.urls")),
+                  path('product/<id>',include("home.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 

@@ -12,9 +12,10 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <title>SoloChino</title>
 </head>
 <nav class="navbar navbar-light" style="background-color: #008080;">
-  <a class="navbar-brand" style="color: FFFFFF" href="#">SoloChino</a>
+  <a class="navbar-brand" style="color: FFFFFF" href="./">SoloChino</a>
       <a class="navbar-brand"  style="color: FFFFFF"  align="right">Valor dólar: ${{valor_dolar}} </a>
 
 </nav>
@@ -44,16 +45,17 @@
                 <div class="card-body">
                     {% for v in value %}
             {% if forloop.counter == 1   %}
-                <img src={{v.4}} class="card-img-top"  alt="..." style="max-height: 150px; max-width: 150px">
+                <img src={{v.5}} class="card-img-top" alt="No hay imagen"  style="height: 150px; width: 150px">
 
             {% endif %}
-                  <h5 class="card-title" > <strong> {{ v.3 }} </strong>  </h5>
+
+                  <h5 class="card-title"  > <strong > <a href="product/{{v.3}}" style="color: black;" >  {{ v.4 }} </a> </strong>   </h5>
             {% if forloop.counter <= 4  and forloop.counter > 1   %}
 
                   <p class="card-text"> <a href={{v.2}} target="_blank" >{{ v.0 }}: </a>${{ v.1 }}
                       {% if v.0 == "Ebay" %}
                        {% with numerator=v.1|slugify denominator=valor_dolar %}
-                      <a href="#"  data-toggle="tooltip" title="Valor en doláres: {{numerator|div:denominator|floatformat:1}} " > <i class="fa fa-info-circle"></i>   </a>
+                      <a href="#"  data-toggle="tooltip" title="Valor en dólares: {{numerator|div:denominator|floatformat:1}} " > <i class="fa fa-info-circle"></i>   </a>
                       {% endwith %}
                       {% endif %}
                 </p>

@@ -7,6 +7,7 @@ urlpatterns = [
     path('run/', views.PromovilScraping, name="PromovilScraping"),
     path('runEbay/', views.EbayApi , name="EbayApi"),
     path('runSm/', views.SmartmobileScraping, name="SmartmobileScraping"),
+    path('product/<id>' , views.productDetail, name="productDetail"),
 
 
 ]
