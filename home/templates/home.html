@@ -1,5 +1,6 @@
 {% load static %}
 {% load bootstrap4 %}
+{% load mathfilters %}
 
 <html>
 
@@ -7,13 +8,21 @@
 <head>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="{% static '/home.css' %}">
-
+    <link href="/bootstrap4-glyphicons/css/bootstrap-glyphicons.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 </head>
+<nav class="navbar navbar-light" style="background-color: #008080;">
+  <a class="navbar-brand" style="color: FFFFFF" href="#">SoloChino</a>
+      <a class="navbar-brand"  style="color: FFFFFF"  align="right">Valor dólar: ${{valor_dolar}} </a>
 
+</nav>
      <div class="row">
 
+
       <div class="col-sm-2" >
-          <p class="p-2"> SoloChino </p>
+
 
       </div>
 
@@ -25,11 +34,11 @@
           {% endblock %}
 
 
-        {% for key, value in new_list_mobiles.items %}
+        {% for key, value in list_mobiles %}
 
           <div class="mx-auto card-deck" >
 
-              <div class="card" style="max-width: 18rem; margin-bottom: 25px" >
+              <div class="card" style="width: 16rem; margin-bottom: 25px" >
 
 
                 <div class="card-body">
@@ -38,14 +47,21 @@
                 <img src={{v.4}} class="card-img-top"  alt="..." style="max-height: 150px; max-width: 150px">
 
             {% endif %}
-                  <h5 class="card-title"> {{ v.3 }} </h5>
+                  <h5 class="card-title" > <strong> {{ v.3 }} </strong>  </h5>
             {% if forloop.counter <= 4  and forloop.counter > 1   %}
 
-                  <p class="card-text"> <a href={{v.2}} target="_blank" >{{ v.0 }}: </a>${{ v.1 }}  </p>
+                  <p class="card-text"> <a href={{v.2}} target="_blank" >{{ v.0 }}: </a>${{ v.1 }}
+                      {% if v.0 == "Ebay" %}
+                       {% with numerator=v.1|slugify denominator=valor_dolar %}
+                      <a href="#"  data-toggle="tooltip" title="Valor en doláres: {{numerator|div:denominator|floatformat:1}} " > <i class="fa fa-info-circle"></i>   </a>
+                      {% endwith %}
+                      {% endif %}
+                </p>
             {% endif %}
                   {% endfor %}
 
-                  <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+
+                  <p class="card-text"><small class="text-muted">Valores pueden variar dependiendo de especificaciones internas del teléfono</small></p>
 
 
                 </div>
@@ -83,7 +99,6 @@
 
       <div class="col-sm-2">
 
-                     <p class="p-2" align="right"> El dolar de hoy es: ${{valor_dolar}} </p>
 
       </div>
 

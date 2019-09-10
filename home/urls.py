@@ -8,4 +8,5 @@ urlpatterns = [
     path('runEbay/', views.EbayApi , name="EbayApi"),
     path('runSm/', views.SmartmobileScraping, name="SmartmobileScraping"),
 
+
 ]

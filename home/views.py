@@ -19,50 +19,81 @@ all_models_sept_2019 = {
                 'mi mix 3', 'mi 8 lite', 'mi 9', 'mi 9 se', 'mi mix 3 5g','redmi 7', 'mi 9t' , 'mi 9t pro', 'mi a3', 'black shark 2 pro' ,'redmi note 7'] ,
 
     'oneplus' : ['3', '3t','5','5t','6','6t','7','7 pro', '7t'],
-    'oppo' : ['reno a', 'a9 2020', 'reno2z', 'reno 2f', 'reno 2'],
+    'oppo' : ['reno a', 'a9 2020', 'reno2 z', 'reno2 f', 'r9s', 'reno z', 'reno ax5', 'r11 plus' , 'find x', 'r11s' , 'reno 10x', 'find 7', 'a77', 'rx17', 'r5'],
     'huawei' : ['nova 5i pro', 'mate 20 x 5g', 'nova 5', 'nova 5 pro', 'nova 5i', 'maimang 8', 'y9 prime', 'p30 lite','p smart z', 'y5 2019', 'p30', 'enjoy 9s'
                 'enjoy 9e', 'p30 pro', 'mate 20', 'nova 4e', 'p smart+', 'y6 prime', 'mate x', 'y6 2019', 'y6 pro', 'nova lite 3', 'y7 prime', 'y7','y7 pro',
                 'y max', 'y5 lite', 'mate 20 pro', 'mate 20 lite', 'p20', 'p20 lite', 'y7' , 'p10' , 'mate10']
 }
 
 prices_for_model = {}
+
 def index(request):
+    dolar = DolarApi()
+    #writeAllExactModels('oneplus')
+    #writeAllExactModels('xiaomi')
+    #writeAllExactModels('huawei')
+    #writeAllExactModels('oppo')
+
+
     list_mobiles  = Mobile.objects.filter(Q(model__contains='one plus') | Q(model__contains='oneplus'))[:20]
-    paginator = Paginator(list_mobiles, 6)
 
-    page = request.GET.get('page')
+    for brand in ['xiaomi','oneplus', 'huawei', 'oppo']:
 
-    list_mobiles = paginator.get_page(page)
+        list_mobiles = getPriceByModel(request, brand, dolar)
 
 
-    getPriceByModel('Smartmobile')
-   # getPriceByModel('Promovil')
-    #getPriceByModel('Ebay')
-    #writeAllExactModels()
-    #getAllExactModelName()
-    #getLinkFromBD()
-    #KimovilScraping()
-    #checkScore()
 
-    context = {'valor_dolar': DolarApi(), 'list_mobiles': list_mobiles, 'new_list_mobiles':prices_for_model}
+        list_mobiles = { k : v for k,v in list_mobiles.items() if v}
+
+        list_mobiles = tuple(list_mobiles.items())
+            #list_mobiles = Mobile.objects.filter(Q(model__icontains=query) | Q(brand__icontains=query))
+            #list_mobiles = dict(list_mobiles)
+
+
+        paginator = Paginator(list_mobiles, 6)
+
+        page = request.GET.get('page')
+
+        list_mobiles = paginator.get_page(page)
+
+
+
+
+
+       # getPriceByModel('Promovil')
+        #getPriceByModel('Ebay')
+        #writeAllExactModels()
+        #getAllExactModelName()
+        #getLinkFromBD()
+        #KimovilScraping()
+        #checkScore()
+
+        context = {'valor_dolar': dolar, 'list_mobiles': list_mobiles, 'new_list_mobiles':prices_for_model}
 
 
 
     return render( request, 'search.html', context)
 
-def getPriceByModel(shop):
+def getPriceByModel(request, brand, dolar):
     result = []
     prices = []
-    for model in all_models_sept_2019['oneplus']:
+    for model in all_models_sept_2019[brand]:
         prices_for_model.update({model: []})
         phones = Mobile.objects.filter(Q(exact_model=model)).values('model','shop','price','exact_model','link','thumbnail').annotate(total=Count('shop')).order_by('price')[:7]
         temp_shop = ['Ebay', 'Smartmobile', 'Promovil']
-        #print (phones)
+
+        query = request.GET.get('q')
+
+        if query:
+            phones = Mobile.objects.filter(Q(exact_model__icontains=query) | Q(brand__icontains=query) | Q(shop__icontains=query)).values('model','shop','price','exact_model','link','thumbnail').annotate(total=Count('shop')).order_by('price')[:7]
+
         for phone in phones:
           #  print (phone['price'] + " " + phone['exact_model'] + " " + phone['shop'] )
 
             if phone['exact_model'] == model and phone['shop'] in temp_shop :
-                if len(prices_for_model[phone['exact_model']]) < 1 and phone['shop'] not in prices_for_model[phone['exact_model'][0]]:
+                if phone['shop'] == "Ebay":
+                    phone['price'] = '{:,.0f}'.format((int(phone['price'].split(".")[0]) * int(dolar))).replace(",",".")
+                if len(prices_for_model[phone['exact_model']]) < 1:
                     prices_for_model[phone['exact_model']].append([phone['shop'], phone['price'], phone['link'], phone['model'][0:14], phone['thumbnail']])
 
                 prices_for_model[phone['exact_model']].append([phone['shop'],phone['price'],phone['link']])
@@ -71,18 +102,32 @@ def getPriceByModel(shop):
 
     return prices_for_model
 
-def writeAllExactModels():
-    phones = Mobile.objects.filter((Q(shop="Promovil") | Q(shop="Smartmobile") | Q(shop="Ebay")) & (Q(brand='oneplus') | Q(brand='OnePlus')))
+
+def search(request):
+    template = 'home.html'
+
+    results = Mobile.objects.filter(Q(model__icontains=query) | Q(brand__icontains=query))
+
+
+
+    pages = pagination(request,results, num=1)
+
+    context = { 'items' : pages[0] , 'page_range':pages[1],}
+
+    return render(request,template,context)
+
+def writeAllExactModels(brand):
+    phones = Mobile.objects.filter((Q(shop="Promovil") | Q(shop="Smartmobile") | Q(shop="Ebay")) & (Q(brand=brand) | Q(brand=brand.capitalize()) | Q(brand=brand.upper())))
     promovil_phones_count = Mobile.objects.filter(Q(shop="Promovil") | Q(shop="Smartmobile")).count()
     models = []
     clean_models = []
     price_id = {}
 
 
-    for i in range(len(all_models_sept_2019['oneplus'])):
+    for i in range(len(all_models_sept_2019[brand])):
         for phone in phones:
-            if  'oneplus' + " " + all_models_sept_2019['oneplus'][i] in phone.model.lower():
-                phones.filter(id=phone.id).update(exact_model=all_models_sept_2019['oneplus'][i])
+            if  brand + " " + all_models_sept_2019[brand][i] in phone.model.lower():
+                phones.filter(id=phone.id).update(exact_model=all_models_sept_2019[brand][i])
     """
     for i in range(len(all_models_sept_2019['xiaomi'])):
         for phone in phones:
@@ -157,7 +202,7 @@ def DolarApi():
         response = requests.get('https://mindicador.cl/api')
         data = response.json()
         dolar = data['dolar']['valor']
-        return dolar
+        return  dolar
 
 
 
@@ -300,11 +345,12 @@ def EbayApi(request):
             model =  product_data['findItemsAdvancedResponse'][0]['searchResult'][0]['item'][i]['title'][0]
             price_usd =  product_data['findItemsAdvancedResponse'][0]['searchResult'][0]['item'][i]['sellingStatus'][0]['convertedCurrentPrice'][0]['__value__']
             link = product_data['findItemsAdvancedResponse'][0]['searchResult'][0]['item'][i]['viewItemURL'][0]
+            thumbnail = product_data['findItemsAdvancedResponse'][0]['searchResult'][0]['item'][i]['galleryURL'][0]
 
             mobile = Mobile.objects.get_or_create(brand=brand, release_date="", price=price_usd, model=model.lower(), screen_size=0,
                                           resolution="", dimensions="", weight=0, ram="",
                                           storage="", rear_camera="", front_camera="", score="", shop="Ebay",
-                                          link=link, thumbnail= "")
+                                          link=link, thumbnail= thumbnail)
 
 
     return render(request, 'scraping.html')
