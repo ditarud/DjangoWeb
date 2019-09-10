@@ -83,13 +83,13 @@ from decouple import config
 
 
 
-""" DATABASES = {
+DATABASES = {
     'default': dj_database_url.config(
         default=config('DATABASE_URL')
     )
-} """
+}
 
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -100,6 +100,7 @@ DATABASES = {
         'PORT': '',
     }
 }
+"""
 
 
 # Password validation
