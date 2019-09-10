@@ -29,10 +29,7 @@ prices_for_model = {}
 
 def index(request):
     dolar = DolarApi()
-    #writeAllExactModels('oneplus')
-    #writeAllExactModels('xiaomi')
-    #writeAllExactModels('huawei')
-    #writeAllExactModels('oppo')
+
 
 
 
@@ -58,6 +55,16 @@ def index(request):
 
 
     return render( request, 'search.html', context)
+
+def afterExtractionOfData(request):
+
+
+     writeAllExactModels('oneplus')
+     writeAllExactModels('xiaomi')
+     writeAllExactModels('huawei')
+     writeAllExactModels('oppo')
+     return render(request, 'scraping.html')
+
 
 
 def productDetail(request, id):
