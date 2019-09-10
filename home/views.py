@@ -29,18 +29,16 @@ prices_for_model = {}
 
 def index(request):
     dolar = DolarApi()
-    writeAllExactModels('oneplus')
-    writeAllExactModels('xiaomi')
-    writeAllExactModels('huawei')
-    writeAllExactModels('oppo')
+    #writeAllExactModels('oneplus')
+    #writeAllExactModels('xiaomi')
+    #writeAllExactModels('huawei')
+    #writeAllExactModels('oppo')
 
 
 
     for brand in ['xiaomi','oneplus', 'huawei', 'oppo']:
 
         list_mobiles = getPriceByModel(request, brand, dolar)
-
-
 
         list_mobiles = { k : v for k,v in list_mobiles.items() if v}
 
@@ -70,8 +68,7 @@ def productDetail(request, id):
     return  render(request, 'product_detail.html',context)
 
 def getPriceByModel(request, brand, dolar):
-    result = []
-    prices = []
+
     for model in all_models_sept_2019[brand]:
         prices_for_model.update({model: []})
         phones = Mobile.objects.filter(Q(exact_model=model)).values('id','model','shop','price','exact_model','link','thumbnail').annotate(total=Count('shop')).order_by('price')[:7]
@@ -99,13 +96,9 @@ def getPriceByModel(request, brand, dolar):
 
 
 
-
 def writeAllExactModels(brand):
     phones = Mobile.objects.filter((Q(shop="Promovil") | Q(shop="Smartmobile") | Q(shop="Ebay")) & (Q(brand=brand) | Q(brand=brand.capitalize()) | Q(brand=brand.upper())))
-    promovil_phones_count = Mobile.objects.filter(Q(shop="Promovil") | Q(shop="Smartmobile")).count()
-    models = []
-    clean_models = []
-    price_id = {}
+
 
 
     for i in range(len(all_models_sept_2019[brand])):
@@ -123,21 +116,16 @@ def writeAllExactModels(brand):
             if 'huawei' + " " + all_models_sept_2019['huawei'][i] in phone.model.lower():
                 phones.filter(id=phone.id).update(exact_model=all_models_sept_2019['huawei'][i])
 
-    """
-   # for i in clean_models:
-    #    print (i)
-    """
+
     for next_phone in range(len(models)-1):
        if similar(models[next_phone], models[next_phone +1]) > 0.9:
            clean_models.append(models[next_phone])
        next_phone+=1
 """
-    print("OBTENER PRECIO Y TIENDA CUANDO LE ENTREGUÉ UN MODELO O POR % DE SIMILITUD DEL TITULO")
-
+    print("Marcas exactas escrita ")
 
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
-
 
 def getAllExactModelName():
     mobile_models = Mobile.objects.filter(Q(model__contains='one plus') | Q(model__contains='oneplus'))
@@ -173,7 +161,6 @@ def getAllExactModelName():
     # SACAR DE LA BD TODOS LOS MODELOS QUE TENEMOS , PARA EMPEZAR A JUNTAR COSAS Y PODER BUSCAR EN KIMOVIL CON SCRAPING
     # RETORNAR UNA LISTA CON TODOS LOS MODELOS COMO [MI9,MI8,6T,7PRO,7,REDMI,A1,A2,A3,MATE20,MATE30,ETC]
 
-
 def getLinkFromBD():
     mobile_link = Mobile.objects.filter(Q(shop='Smartmobile'))
     link_kimovil_smartmobile  = []
@@ -181,16 +168,19 @@ def getLinkFromBD():
           link_kimovil_smartmobile.append(i.link.replace("https://smartmobile.cl/producto/" , "").partition("-global")[0])
     return (link_kimovil_smartmobile)
 
+
+
+
+
+
+
+
 def DolarApi():
 
         response = requests.get('https://mindicador.cl/api')
         data = response.json()
         dolar = data['dolar']['valor']
         return  dolar
-
-
-
-
 
 def PromovilScraping(request):
     brands = ['40-oneplus', '69-huawei', '105-xiaomi']
@@ -216,7 +206,6 @@ def PromovilScraping(request):
            mobile = Mobile.objects.get_or_create(brand=brand, release_date="", price=price, model=model.lower(), screen_size=0, resolution="", dimensions="", weight=0, ram="",
                                           storage="",rear_camera="",front_camera="",score="",shop="Promovil",link=link , thumbnail = thumbnail)
     return render(request,'scraping.html')
-
 
 def SmartmobileScraping(request):
     brands = ['xiaomi-smartphones', 'huawei', 'oneplus-smartphones']
@@ -266,18 +255,8 @@ def SmartmobileScraping(request):
                                                       shop="Smartmobile", link=link_bd, thumbnail=thumbnail_bd)
     return render(request, 'scraping.html')
 
-
-def checkScore():
-    mobile_models = Mobile.objects.filter(Q(model__contains='one plus') | Q(model__contains='oneplus'))
-    dict_scores = KimovilScraping()
-   # for mobile in mobile_models:
-       # print( mobile.model , [value for key, value in dict_scores.items() if mobile.model.find(key.lower()) != -1] )
-
-
 def KimovilScraping(exact_model):
-    brands = ['xiaomi']
-    getLinkFromBD()
-    score_dict = {}
+
 
 
     website = "https://www.kimovil.com/en/compare-smartphones/name.exact_model"
@@ -291,15 +270,6 @@ def KimovilScraping(exact_model):
     screen_size =  soup.find('div', {"class": "data"})
 
     return score
-
-
-
-
-
-
-
-
-
 
 def EbayApi(request):
     brands = ['Xiaomi', 'Huawei', 'OPPO' , 'OnePlus' ]
