@@ -13,7 +13,7 @@
      <div class="row">
 
       <div class="col-sm-2" >
-          <p class="p-2"> La marca es : {{mobiles.brand}} y {{mobiles.price}} </p>
+          <p class="p-2"> SoloChino </p>
 
       </div>
 
@@ -25,26 +25,38 @@
           {% endblock %}
 
 
-
-        {% for i in list_mobiles %}
+        {% for key, value in new_list_mobiles.items %}
 
           <div class="mx-auto card-deck" >
 
-              <div class="card" style="max-width: 18rem;" >
-                <img src="https://www.stickpng.com/assets/images/580b57fcd9996e24bc43c531.png" class="card-img-top"  alt="..." style="max-height: 100px; max-width: 100px">
+              <div class="card" style="max-width: 18rem; margin-bottom: 25px" >
+
+
                 <div class="card-body">
-                  <h5 class="card-title"> {{i.model }} </h5>
-                  <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                    {% for v in value %}
+            {% if forloop.counter == 1   %}
+                <img src={{v.4}} class="card-img-top"  alt="..." style="max-height: 150px; max-width: 150px">
+
+            {% endif %}
+                  <h5 class="card-title"> {{ v.3 }} </h5>
+            {% if forloop.counter <= 4  and forloop.counter > 1   %}
+
+                  <p class="card-text"> <a href={{v.2}} target="_blank" >{{ v.0 }}: </a>${{ v.1 }}  </p>
+            {% endif %}
+                  {% endfor %}
+
                   <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+
+
                 </div>
+
               </div>
 
-
-
-        </div>
+          </div>
 
 
         {% endfor %}
+
 
 
         </div>

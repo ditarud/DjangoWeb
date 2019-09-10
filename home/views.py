@@ -5,10 +5,28 @@ from .models import Mobile
 from bs4 import BeautifulSoup
 from django.db.models import Q
 from django.core.paginator import Paginator
+from difflib import SequenceMatcher
+from django.db.models import Count
 
 
+all_models_sept_2019 = {
+    'xiaomi' : ['redmi note 2', 'redmi note 2 prime', 'redmi 2 pro', 'redmi 2a prime', 'redmi note 3', 'redmi note 3 pro', 'redmi 3',
+                'mi5', 'mi 5 pro', 'mi 5 high', 'redmi 3 pro', 'mi max', 'redmi 3s', 'redmi 3x', 'redmi pro', 'redmi 3s pro', 'redmi note 4', 'mi 5s',
+                'mi 5s plus', 'mi max prime', 'mi note 2', 'mi mix', 'redmi 4 standard edition', 'redmi 4a' , 'redmi note 4',  'redmi note 4x', 'redmi 4x',
+                'mi 5c', 'mi 6', 'mi max 2', 'redmi note 5', 'mi 5x', 'redmi note 5a', 'mi a1', 'mi mix 2', 'mi note 3', 'mi mix 2 special edition', 'redmi 5a',
+                'redmi y1', 'redmo y1 lite', 'redmi 5', 'redmit 5 plus', 'redmi note 5 pro', 'mi mix 2s', 'mi 6x', 'black shark', 'redmi s2', 'mi 8', 'mi 8 se',
+                'redmi y2', 'redmi 6', 'redmi 6a', 'redmi 6 pro', 'mi a2', 'mi a2 lite', 'mi max 3', 'pocophone f1', 'redmi note 6 pro','mi 8 pro', 'black shark 2',
+                'mi mix 3', 'mi 8 lite', 'mi 9', 'mi 9 se', 'mi mix 3 5g','redmi 7', 'mi 9t' , 'mi 9t pro', 'mi a3', 'black shark 2 pro' ,'redmi note 7'] ,
+
+    'oneplus' : ['3', '3t','5','5t','6','6t','7','7 pro', '7t'],
+    'oppo' : ['reno a', 'a9 2020', 'reno2z', 'reno 2f', 'reno 2'],
+    'huawei' : ['nova 5i pro', 'mate 20 x 5g', 'nova 5', 'nova 5 pro', 'nova 5i', 'maimang 8', 'y9 prime', 'p30 lite','p smart z', 'y5 2019', 'p30', 'enjoy 9s'
+                'enjoy 9e', 'p30 pro', 'mate 20', 'nova 4e', 'p smart+', 'y6 prime', 'mate x', 'y6 2019', 'y6 pro', 'nova lite 3', 'y7 prime', 'y7','y7 pro',
+                'y max', 'y5 lite', 'mate 20 pro', 'mate 20 lite', 'p20', 'p20 lite', 'y7' , 'p10' , 'mate10']
+}
+
+prices_for_model = {}
 def index(request):
-    mobiles = Mobile.objects.all()[0]
     list_mobiles  = Mobile.objects.filter(Q(model__contains='one plus') | Q(model__contains='oneplus'))[:20]
     paginator = Paginator(list_mobiles, 6)
 
@@ -16,14 +34,80 @@ def index(request):
 
     list_mobiles = paginator.get_page(page)
 
-    context = {'valor_dolar':DolarApi(), 'mobiles':mobiles, 'list_mobiles': list_mobiles}
+
+    getPriceByModel('Smartmobile')
+   # getPriceByModel('Promovil')
+    #getPriceByModel('Ebay')
+    #writeAllExactModels()
     #getAllExactModelName()
     #getLinkFromBD()
     #KimovilScraping()
     #checkScore()
 
+    context = {'valor_dolar': DolarApi(), 'list_mobiles': list_mobiles, 'new_list_mobiles':prices_for_model}
+
+
 
     return render( request, 'search.html', context)
+
+def getPriceByModel(shop):
+    result = []
+    prices = []
+    for model in all_models_sept_2019['oneplus']:
+        prices_for_model.update({model: []})
+        phones = Mobile.objects.filter(Q(exact_model=model)).values('model','shop','price','exact_model','link','thumbnail').annotate(total=Count('shop')).order_by('price')[:7]
+        temp_shop = ['Ebay', 'Smartmobile', 'Promovil']
+        #print (phones)
+        for phone in phones:
+          #  print (phone['price'] + " " + phone['exact_model'] + " " + phone['shop'] )
+
+            if phone['exact_model'] == model and phone['shop'] in temp_shop :
+                if len(prices_for_model[phone['exact_model']]) < 1 and phone['shop'] not in prices_for_model[phone['exact_model'][0]]:
+                    prices_for_model[phone['exact_model']].append([phone['shop'], phone['price'], phone['link'], phone['model'][0:14], phone['thumbnail']])
+
+                prices_for_model[phone['exact_model']].append([phone['shop'],phone['price'],phone['link']])
+                temp_shop.remove(phone['shop'])
+
+
+    return prices_for_model
+
+def writeAllExactModels():
+    phones = Mobile.objects.filter((Q(shop="Promovil") | Q(shop="Smartmobile") | Q(shop="Ebay")) & (Q(brand='oneplus') | Q(brand='OnePlus')))
+    promovil_phones_count = Mobile.objects.filter(Q(shop="Promovil") | Q(shop="Smartmobile")).count()
+    models = []
+    clean_models = []
+    price_id = {}
+
+
+    for i in range(len(all_models_sept_2019['oneplus'])):
+        for phone in phones:
+            if  'oneplus' + " " + all_models_sept_2019['oneplus'][i] in phone.model.lower():
+                phones.filter(id=phone.id).update(exact_model=all_models_sept_2019['oneplus'][i])
+    """
+    for i in range(len(all_models_sept_2019['xiaomi'])):
+        for phone in phones:
+            if 'xiaomi' + " " + all_models_sept_2019['xiaomi'][i] in phone.model.lower():
+                phones.filter(id=phone.id).update(exact_model=all_models_sept_2019['xiaomi'][i]) """
+    """
+    for i in range(len(all_models_sept_2019['huawei'])):
+        for phone in phones:
+            if 'huawei' + " " + all_models_sept_2019['huawei'][i] in phone.model.lower():
+                phones.filter(id=phone.id).update(exact_model=all_models_sept_2019['huawei'][i])
+
+    """
+   # for i in clean_models:
+    #    print (i)
+    """
+    for next_phone in range(len(models)-1):
+       if similar(models[next_phone], models[next_phone +1]) > 0.9:
+           clean_models.append(models[next_phone])
+       next_phone+=1
+"""
+    print("OBTENER PRECIO Y TIENDA CUANDO LE ENTREGUÉ UN MODELO O POR % DE SIMILITUD DEL TITULO")
+
+
+def similar(a, b):
+    return SequenceMatcher(None, a, b).ratio()
 
 
 def getAllExactModelName():
@@ -55,7 +139,7 @@ def getAllExactModelName():
                all_oneplus_models.append(next_word)
 
     count+=1
-    print ((all_oneplus_models))
+    print ((set(all_oneplus_models)))
     return all_oneplus_models
     # SACAR DE LA BD TODOS LOS MODELOS QUE TENEMOS , PARA EMPEZAR A JUNTAR COSAS Y PODER BUSCAR EN KIMOVIL CON SCRAPING
     # RETORNAR UNA LISTA CON TODOS LOS MODELOS COMO [MI9,MI8,6T,7PRO,7,REDMI,A1,A2,A3,MATE20,MATE30,ETC]
@@ -69,19 +153,18 @@ def getLinkFromBD():
     return (link_kimovil_smartmobile)
 
 def DolarApi():
-    try:
+
         response = requests.get('https://mindicador.cl/api')
         data = response.json()
         dolar = data['dolar']['valor']
         return dolar
-    except:
-        return "Murió Api"
+
 
 
 
 
 def PromovilScraping(request):
-    brands = ['40-oneplus', '69-huawei', '105-xiaomi', '15-samsung']
+    brands = ['40-oneplus', '69-huawei', '105-xiaomi']
 
     for brand in brands:
         website =  "https://www.promovil.cl/brand"
@@ -145,6 +228,8 @@ def SmartmobileScraping(request):
 
                 link_bd =  link[i].find("a")['href']
                 thumbnail_bd = no_duplicates_thmbnail[i]['src']
+                if len(price) > 10:
+                    price = price.split(":")[1].replace(" ", "")
 
                 mobile = Mobile.objects.get_or_create(brand=brand, release_date="", price=price, model=model.lower(), screen_size=0,
                                                     resolution="", dimensions="", weight=0, ram="",
