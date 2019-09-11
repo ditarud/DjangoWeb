@@ -84,10 +84,10 @@ def getPriceByModel(request, brand, dolar):
         query = request.GET.get('q')
 
         if query:
-            phones = Mobile.objects.filter(Q(exact_model__icontains=query) | Q(brand__icontains=query) | Q(shop__icontains=query)).values('id','model','shop','price','exact_model','link','thumbnail').annotate(total=Count('shop')).order_by('price')[:7]
+            phones = Mobile.objects.filter(Q(exact_model__icontains=query) | Q(brand__icontains=query) | Q(shop__icontains=query)).values('brand','id','model','shop','price','exact_model','link','thumbnail').annotate(total=Count('shop')).order_by('price')[:7]
 
         for phone in phones:
-          #  print (phone['price'] + " " + phone['exact_model'] + " " + phone['shop'] )
+            #print (phone)
 
             if phone['exact_model'] == model and phone['shop'] in temp_shop :
                 if phone['shop'] == "Ebay":
@@ -183,10 +183,13 @@ def getLinkFromBD():
 
 
 def DolarApi():
-
         response = requests.get('https://mindicador.cl/api')
-        data = response.json()
-        dolar = data['dolar']['valor']
+        if response:
+            data = response.json()
+            dolar = data['dolar']['valor']
+        else:
+            dolar = 1
+
         return  dolar
 
 def PromovilScraping(request):
