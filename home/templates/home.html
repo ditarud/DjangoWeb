@@ -83,8 +83,8 @@
             <div class="pagination"  style="display: flex; justify-content: flex-end" >
 
               {% if list_mobiles.has_previous %}
-              <a href="?page=1">First </a>
-              <a href="?page={{ list_mobiles.previous_page_number }}"> Previous </a>
+              <a href="?page=1">Primera </a>
+              <a href="?page={{ list_mobiles.previous_page_number }}"> Anterior </a>
               {% endif %}
 
               <span>{{ list_mobiles.number }}</span>
@@ -92,8 +92,8 @@
               <span>{{ list_mobiles.paginator.num_pages }}</span>
 
               {% if list_mobiles.has_next %}
-              <a href="?page={{ list_mobiles.next_page_number }}">Next </a>
-              <a href="?page={{ list_mobiles.paginator.num_pages }}">Last </a>
+              <a href="?page={{ list_mobiles.next_page_number }}">Siguiente </a>
+              <a href="?page={{ list_mobiles.paginator.num_pages }}">Última </a>
               {% endif %}
             </div>
       </div>
