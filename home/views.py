@@ -71,7 +71,7 @@ def productDetail(request, id):
     phone =  Mobile.objects.get(id=id)
 
     score = KimovilScraping(phone.exact_model)
-    context = {'phone':phone, 'score':score}
+    context = {'phone':phone, 'score':score, 'valor_dolar':DolarApi(), 'shop' : phone.shop}
     return  render(request, 'product_detail.html',context)
 
 def getPriceByModel(request, brand, dolar):

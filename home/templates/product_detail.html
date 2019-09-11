@@ -2,7 +2,7 @@
 {% load static %}
 {% load bootstrap4 %}
 {% load mathfilters %}
-
+{% load humanize %}
 <head>
     <meta charset="UTF-8">
      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -24,14 +24,22 @@
             <img src={{phone.thumbnail}} class="card-img-top"  alt="Imagen no disponible" style="height: 400px; width: 400px">
          </div>
           <div class="col-sm-6" >
-              <div class="row" style=" white-space:pre-line;">
-                  Descripción: {{phone.model}}
-                  Tiendas: {{phone.shop}}
+              <div class="row"  style=" white-space:pre-line;">
+
+                Descripción:{{phone.model}}
+                Marca:    {{phone.brand}}
+                Modelo:  {{phone.exact_model}}
+               {% if shop == 'Ebay' %}
+                Precio*:  ${{phone.price|floatformat:0|mul:valor_dolar|floatformat:0|intcomma}}
+                Aduana**:  ${{phone.price|floatformat:0|mul:0.26|mul:valor_dolar|floatformat:0|intcomma}}
+                Precio final: ${{phone.price|mul:1.26|mul:valor_dolar|floatformat:0|intcomma}}
+                  {% else %}
                   Precio: ${{phone.price}}
-                  Marca: {{phone.brand}}
-                  Modelo: {{phone.exact_model}}
-              </div>
-            <div class="row" >
+                {% endif %}
+
+            </div>
+            <div class="row"  >
+
               <a href="{{phone.link}}">Ver en {{phone.shop}} </a>
              </div>
 
@@ -46,10 +54,14 @@
                   <a href="https://www.kimovil.com/en/compare-smartphones/name.{{phone.exact_model}}">  Ver opiniones de usuarios en Kimovil </a>
 
 
+              </div>
+              <p style= "white-space:pre-line;">
+                  {% if shop == 'Ebay' %}
+              * Todos valores en pesos Chilenos
+            **Los montos mostrados son referenciales y aproximados, ya que hay otros cargos que pueden influir en el cobro final, como el costo de almacenaje u otros que pueden cobrar las empresas courier, casillas o Correos de Chile,  incluso teniendo la posibilidad de no existir ningún cobro.
+                   {% endif %}
+                </p>
 
 
-        </div>
-
-    </div>
 </body>
 </html>
